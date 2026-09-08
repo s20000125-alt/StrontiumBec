@@ -238,7 +238,11 @@ function run(dir, ms, done) {
 
 /* ---------- leaving ---------- */
 function go(url) {
-  if (RM.matches) { location.href = url; return; }
+  if (RM.matches) {
+    console.info('[deepdive] descent skipped: the system has "reduce motion" turned on.');
+    location.href = url;
+    return;
+  }
   if (busy) return;
   try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
   run('out', CONF.outMs, () => { location.href = url; });
@@ -246,13 +250,18 @@ function go(url) {
 window.deepDive = go;
 
 document.addEventListener('click', e => {
+  const skip = why => { console.debug('[deepdive] no descent for this click:', why); };
   if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   const a = e.target.closest && e.target.closest('a[href]');
-  if (!a || a.hasAttribute('data-no-dive')) return;
+  if (!a) return;
+  if (a.hasAttribute('data-no-dive')) return skip('link opts out with data-no-dive');
   const href = a.getAttribute('href') || '';
-  if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) return;
-  if (a.target && a.target !== '_self') return;
-  if (/\.(pdf|zip|jpe?g|png|mp4)$/i.test(new URL(a.href, location.href).pathname)) return;
+  if (!href) return skip('empty href');
+  if (href.startsWith('#')) return skip('same-page anchor ' + href + ' — nothing to navigate to');
+  if (/^(mailto|tel|javascript):/i.test(href)) return skip('not a page link');
+  if (a.target && a.target !== '_self') return skip('opens in a new tab');
+  if (/\.(pdf|zip|jpe?g|png|mp4)$/i.test(new URL(a.href, location.href).pathname))
+    return skip('links to a file, not a page');
   e.preventDefault();
   go(a.href);
 }, true);
@@ -268,6 +277,9 @@ function maybeSettle() {
 }
 if (document.readyState === 'loading') addEventListener('DOMContentLoaded', maybeSettle);
 else maybeSettle();
+
+console.info('[deepdive] ready. reduce-motion:', RM.matches,
+  '· try window.deepDive("team.html") to run the descent by hand.');
 
 // coming back with the browser button should not leave the page mid-dive
 addEventListener('pageshow', ev => {
