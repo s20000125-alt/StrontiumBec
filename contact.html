@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contact · Strontium quantum gases · University of Amsterdam</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+@font-face{
+  font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;
+  src:url(https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-400-normal.woff2) format('woff2');
+}
+@font-face{
+  font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;
+  src:url(https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-500-normal.woff2) format('woff2');
+}
+:root{
+  --background:#171615;
+  --background-light:#23211f;
+  --foreground:#d8d3c9;
+  --foreground-bright:#eeeae1;
+  --foreground-muted:#8f8a82;
+  --line-secondary:rgba(190,185,176,.28);
+  --ink:var(--foreground);
+  --dim:var(--foreground-muted);
+  --line:var(--line-secondary);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:radial-gradient(120% 95% at 50% 44%, #1d1b19 0%, #171615 58%, #0f0e0d 100%);
+  background-attachment:fixed;color:var(--ink);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;overflow:hidden}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--foreground-bright);outline-offset:3px}
+
+body::before{content:"";position:fixed;inset:-50px;z-index:9;pointer-events:none;opacity:.045;
+  mix-blend-mode:soft-light;animation:grainshift 8s steps(6) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes grainshift{0%{transform:translate(0,0)}20%{transform:translate(-6px,4px)}40%{transform:translate(5px,-5px)}60%{transform:translate(-4px,-3px)}80%{transform:translate(6px,3px)}100%{transform:translate(0,0)}}
+
+/* ---------------- the survey ---------------- */
+#map{position:fixed;inset:0;z-index:1}
+#map svg{width:100%;height:100%;display:block}
+#map::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(275deg, rgba(15,14,13,.88) 0%, rgba(15,14,13,.5) 12%, transparent 27%)}
+
+/* contours */
+.iso{fill:none;stroke:rgba(216,211,201,.26);stroke-width:.85;stroke-linecap:round;stroke-linejoin:round}
+.iso.half{stroke:rgba(216,211,201,.13);stroke-dasharray:1.5 5}
+.iso.sea{stroke:rgba(238,234,225,.7);stroke-width:1.25}
+.iso.index{stroke:rgba(216,211,201,.4);stroke-width:1.1}
+
+/* built environment, drawn over the contours */
+.st{fill:none;stroke:rgba(226,222,213,.34);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.st.major{stroke:rgba(226,222,213,.5);stroke-width:4.2}
+.st.minor{stroke:rgba(226,222,213,.24);stroke-width:1.8}
+.st.dike{stroke:rgba(226,222,213,.34);stroke-width:1.5;stroke-dasharray:9 4}
+.rail{fill:none;stroke:rgba(226,222,213,.46);stroke-width:1.1}
+.rail.ties{stroke-width:5.4;stroke-dasharray:1.6 8;opacity:.55;stroke-linecap:butt}
+.blk{fill:rgba(226,222,213,.05);stroke:rgba(226,222,213,.3);stroke-width:.9;stroke-linejoin:round}
+.blk.home{fill:rgba(238,234,225,.13);stroke:rgba(238,234,225,.75);stroke-width:1.3}
+.wat{fill:rgba(216,211,201,.06);stroke:rgba(216,211,201,.34);stroke-width:1}
+.wat.line{fill:none}
+.hatch{stroke:rgba(216,211,201,.16);stroke-width:.8;fill:none}
+.mark{fill:none;stroke:var(--foreground-bright);stroke-width:1.1}
+.dot{fill:var(--foreground-bright)}
+.thin{fill:none;stroke:rgba(226,222,213,.55);stroke-width:.9;stroke-linecap:round}
+
+text{font-family:"IBM Plex Mono",monospace;fill:var(--dim);font-size:10.5px;letter-spacing:.13em;
+  paint-order:stroke;stroke:#15140f;stroke-width:3.4;stroke-linejoin:round}
+text.road{fill:rgba(226,222,213,.62);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+text.water{fill:rgba(216,211,201,.5);font-size:10px;letter-spacing:.22em;text-transform:uppercase}
+text.lvl{fill:rgba(226,222,213,.55);font-size:9.5px;letter-spacing:.06em;stroke-width:4}
+text.lvl.sea{fill:var(--foreground-bright);font-size:10.5px}
+text.here{fill:var(--foreground-bright);font-size:12.5px;letter-spacing:.05em}
+text.sub{fill:rgba(216,211,201,.55);font-size:10px;letter-spacing:.12em}
+text.tick{fill:var(--dim);font-size:9.5px;letter-spacing:.16em}
+
+/* ---------------- overlays ---------------- */
+.home{position:fixed;top:28px;left:32px;z-index:6;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim);line-height:1.6}
+.home b{display:block;font-weight:500;color:var(--foreground-bright);letter-spacing:.05em}
+.home:hover b{color:#fbf8f2}
+
+.coords{position:fixed;left:32px;top:50%;transform:translateY(-64%);z-index:5;line-height:1.75;
+  font-size:11px;letter-spacing:.05em;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px #15140f,0 0 4px #15140f}
+.coords i{display:block;font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px}
+.coords b{font-weight:400;color:var(--foreground-bright)}
+.coords hr{border:0;border-top:1px dotted rgba(190,185,176,.4);margin:13px 0 11px;width:96px}
+.coords span{color:var(--dim)}
+
+.card{position:fixed;right:34px;top:26px;bottom:26px;z-index:5;width:min(330px,42vw);
+  display:flex;flex-direction:column;justify-content:center;gap:22px;font-size:12px;line-height:1.65}
+.card h1{font-size:clamp(26px,2.7vw,38px);font-weight:400;letter-spacing:-.05em;line-height:1;
+  color:var(--foreground-bright)}
+.card h1 em{display:block;font-style:normal;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin-top:12px}
+.row{border-top:1px solid rgba(190,185,176,.16);padding-top:13px}
+.row i{display:block;font-style:normal;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:7px}
+.row a{border-bottom:1px solid var(--line)}
+.row a:hover{color:#fbf8f2;border-color:var(--foreground-bright)}
+.row dl{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-variant-numeric:tabular-nums}
+.row dt{color:var(--dim)}
+.row dd{text-align:right;color:var(--foreground-bright)}
+.maps{display:inline-flex;align-items:center;gap:9px;margin-top:4px;font-size:11.5px;letter-spacing:.04em;
+  color:var(--foreground-bright);border-bottom:1px solid rgba(226,222,213,.5);padding-bottom:2px}
+.maps:hover{border-color:#fbf8f2}
+.maps svg{width:11px;height:11px;flex:none;stroke:currentColor;fill:none;stroke-width:1.4}
+details summary{cursor:pointer;color:var(--dim);font-size:11px;letter-spacing:.06em;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--foreground-bright)}
+details[open] summary::before{content:"– "}
+details summary:hover{color:var(--foreground-bright)}
+details .body{margin-top:11px;font-size:11px;line-height:1.7;color:var(--foreground);opacity:.72}
+details .body p+p{margin-top:11px}
+
+/* logo slots: drop files into logos/ and they replace the label */
+.crests{position:fixed;left:32px;bottom:26px;z-index:6;display:flex;align-items:flex-end;gap:12px}
+.crest{width:58px;height:58px;display:grid;place-items:center;padding:5px;text-align:center;
+  border:1px solid rgba(190,185,176,.20);border-radius:2px;background:rgba(21,20,15,.55);
+  font-size:8.5px;line-height:1.25;letter-spacing:.06em;color:var(--dim)}
+.crest img{max-width:100%;max-height:100%;display:block;
+  filter:grayscale(1) brightness(1.75) contrast(.85);opacity:.9}
+.crest.filled{border-color:transparent;padding:0;background:none}
+
+.gridref{position:fixed;right:34px;bottom:26px;z-index:6;text-align:right;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);line-height:1.85;opacity:.75;
+  font-variant-numeric:tabular-nums}
+
+/* the contours ink themselves in once, on arrival */
+@media (prefers-reduced-motion:no-preference){
+  .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
+    animation:ink 1.4s cubic-bezier(.3,.7,.2,1) forwards;animation-delay:var(--d,0s)}
+  @keyframes ink{to{stroke-dashoffset:0}}
+  .fadein{opacity:0;animation:app .9s ease forwards;animation-delay:var(--d,0s)}
+  @keyframes app{to{opacity:1}}
+}
+@media (prefers-reduced-motion:reduce){body::before{animation:none}}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  #map{position:relative;height:60vh;inset:auto}
+  #map::after{background:linear-gradient(0deg, rgba(15,14,13,.92), transparent 40%)}
+  .home{position:absolute}
+  .coords{position:absolute;left:20px;top:auto;bottom:14px;transform:none}
+  .card{position:static;width:auto;padding:0 20px 26px;height:auto;inset:auto}
+  .crests{position:static;padding:0 20px 22px}
+  .gridref{position:static;text-align:left;padding:0 20px 34px}
+}
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">
+  Strontium quantum gases<b>Amsterdam</b>
+</a>
+
+<div id="map" aria-label="Sketch map of Amsterdam Science Park, with ground contours"></div>
+
+<div class="coords">
+  <i>Coordinates</i>
+  <b>52.3559° N</b><br>
+  <b>4.9550° E</b>
+  <hr>
+  <span>Elev. −1 m NAP</span><br>
+  <span>Below sea level</span>
+</div>
+
+<div class="card">
+  <h1>Science Park 904<em>Institute of Physics, room D0</em></h1>
+
+  <div class="row">
+    <i>Visit</i>
+    Institute of Physics, University of Amsterdam<br>
+    Science Park 904, 1098 XH Amsterdam<br>
+    The Netherlands
+    <br>
+    <a class="maps" href="https://www.google.com/maps/search/?api=1&query=Science+Park+904%2C+1098+XH+Amsterdam" target="_blank" rel="noopener" data-no-dive>
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 11S1.8 7.2 1.8 4.6a4.2 4.2 0 1 1 8.4 0C10.2 7.2 6 11 6 11Z"/><circle cx="6" cy="4.5" r="1.4"/></svg>
+      Open in Google Maps
+    </a>
+  </div>
+
+  <div class="row">
+    <i>Arrive by train</i>
+    Amsterdam Science Park, Kruislaan 261<br>
+    Sprinter from Centraal, then a 7-minute walk north
+  </div>
+
+  <div class="row">
+    <i>Write</i>
+    <a href="mailto:schreck@uva.nl">schreck@uva.nl</a><br>
+    <a href="mailto:schreck@strontiumBEC.com">schreck@strontiumBEC.com</a>
+  </div>
+
+  <div class="row">
+    <i>Call a lab</i>
+    <dl>
+      <dt>SrMic, SrPAL · D0.134</dt><dd>+31 20 525 8515</dd>
+      <dt>RbSr · D0.136</dt><dd>+31 20 525 8565</dd>
+      <dt>iqClock · D0.137</dt><dd>+31 20 525 7012</dd>
+    </dl>
+  </div>
+
+  <div class="row">
+    <details>
+      <summary>Post and deliveries</summary>
+      <div class="body">
+        <p>Letters: Florian Schreck, Institute of Physics, University of Amsterdam, Postbus 94485, 1090 GL Amsterdam.</p>
+        <p>Deliveries: Florian Schreck, Universiteit van Amsterdam, Centraal magazijn FC, attn. Florian Schreck, lab D0.136, Science Park 904, 1098 XH Amsterdam.</p>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- Logo slots. Drop files into logos/ (uva.svg, iop.svg, group.svg) and they take over. -->
+<div class="crests">
+  <span class="crest" data-logo="logos/uva.svg">University<br>of Amsterdam</span>
+  <span class="crest" data-logo="logos/iop.svg">Institute<br>of Physics</span>
+  <span class="crest" data-logo="logos/group.svg">Sr<br>group</span>
+</div>
+
+<div class="gridref">
+  Sketch map · drawn by hand<br>
+  Datum NAP · contours 0.5 m<br>
+  Streets after OpenStreetMap
+</div>
+
+<script>
+/* ==========================================================================
+   A hand-drawn street map of Amsterdam Science Park with the ground contours
+   over it. Coordinates below are real degrees, projected in code, so any
+   vertex can be corrected against a map without touching the drawing logic.
+
+   The ground is the story: the campus sits about a metre under sea level on
+   the outer bank of the Ooster Ringdijk, and immediately west of that dike
+   the Watergraafsmeer drops away to roughly −4.5 m NAP. That step is why the
+   contours bunch into a tight band down the left of the frame.
+   ========================================================================== */
+const NS = 'http://www.w3.org/2000/svg';
+const VW = 1000, VH = 700;                    // frame ≈ 3.5 km × 2.45 km
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const ORIG = { lat: 52.3559, lon: 4.9550 };   // Science Park 904
+const KX = 19523, KY = 31775;                 // units per degree at this latitude
+const P = ([lat, lon]) => [500 + (lon - ORIG.lon) * KX, 350 - (lat - ORIG.lat) * KY];
+const line = pts => pts.map(P);
+
+/* ---------- the ground ---------- */
+const RINGDIJK = line([
+  [52.3648, 4.9478], [52.3608, 4.9470], [52.3565, 4.9461],
+  [52.3520, 4.9448], [52.3478, 4.9433], [52.3438, 4.9416],
+]);
+const CANALBANK = line([
+  [52.3660, 4.9748], [52.3600, 4.9772], [52.3540, 4.9784], [52.3470, 4.9778],
+]);
+const FLEVO = P([52.3634, 4.9498]);
+
+function nearest(poly, x, y) {           // distance, plus which side of the line
+  let best = 1e9, side = 1;
+  for (let i = 0; i < poly.length - 1; i++) {
+    const [ax, ay] = poly[i], [bx, by] = poly[i + 1];
+    const dx = bx - ax, dy = by - ay;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)));
+    const px = ax + t * dx, py = ay + t * dy;
+    const d = Math.hypot(x - px, y - py);
+    if (d < best) { best = d; side = Math.sign(dy * (x - ax) - dx * (y - ay)) || 1; }
+  }
+  return { d: best, side };
+}
+const smooth = u => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
+
+/* metres NAP, before the datum is pinned */
+function ground0(x, y) {
+  const dk = nearest(RINGDIJK, x, y);
+  const s = dk.d * dk.side;                                   // +east of the dike
+  let z = -4.55 + 4.05 * smooth((s + 150) / 300)              // the polder step
+        + 3.65 * Math.exp(-Math.pow(dk.d / 72, 2));           // the dike, crest above sea level
+  const cb = nearest(CANALBANK, x, y);
+  z += 1.35 * Math.exp(-Math.pow(cb.d / 130, 2));             // the canal embankment
+  z += 0.55 * Math.exp(-(Math.pow((x - FLEVO[0]) / 240, 2) + Math.pow((y - FLEVO[1]) / 170, 2)));
+  z += 0.40 * Math.sin(x / 165 + 1.1) * Math.cos(y / 190 - 0.4)
+     + 0.22 * Math.sin(x / 78 - 2.2) * Math.sin(y / 96 + 0.9)
+     + 0.12 * Math.sin(x / 47 + 0.3) * Math.cos(y / 55 - 1.7);
+  return z;
+}
+/* pin the model to the building's real height, so every printed figure is honest
+   relative to it: Science Park 904 stands at about 0.95 m below sea level */
+const HERE = P([52.35595, 4.95445]);
+const ZFIX = -0.95 - ground0(HERE[0], HERE[1]);
+const ground = (x, y) => ground0(x, y) + ZFIX;
+
+/* ---------- marching squares over a cached grid ---------- */
+const GX0 = -90, GY0 = -90, GX1 = VW + 90, GY1 = VH + 90;
+const NX = 168, NY = 122;
+const HX = (GX1 - GX0) / (NX - 1), HY = (GY1 - GY0) / (NY - 1);
+const Z = new Float32Array(NX * NY);
+for (let j = 0; j < NY; j++)
+  for (let i = 0; i < NX; i++)
+    Z[j * NX + i] = ground(GX0 + i * HX, GY0 + j * HY);
+
+function isoSegments(lv) {
+  const segs = [];
+  const ix = (i, j) => GX0 + i * HX, iy = (i, j) => GY0 + j * HY;
+  const mix = (a, b) => (lv - a) / (b - a);
+  for (let j = 0; j < NY - 1; j++) for (let i = 0; i < NX - 1; i++) {
+    const z0 = Z[j * NX + i], z1 = Z[j * NX + i + 1],
+          z2 = Z[(j + 1) * NX + i + 1], z3 = Z[(j + 1) * NX + i];
+    const c = (z0 > lv ? 1 : 0) | (z1 > lv ? 2 : 0) | (z2 > lv ? 4 : 0) | (z3 > lv ? 8 : 0);
+    if (c === 0 || c === 15) continue;
+    const x0 = ix(i), y0 = iy(0, j), x1 = x0 + HX, y1 = y0 + HY;
+    const T = [x0 + HX * mix(z0, z1), y0];      // top edge
+    const R = [x1, y0 + HY * mix(z1, z2)];      // right
+    const B = [x0 + HX * mix(z3, z2), y1];      // bottom
+    const L = [x0, y0 + HY * mix(z0, z3)];      // left
+    const push = (a, b) => segs.push([a, b]);
+    switch (c) {
+      case 1: case 14: push(L, T); break;
+      case 2: case 13: push(T, R); break;
+      case 3: case 12: push(L, R); break;
+      case 4: case 11: push(R, B); break;
+      case 6: case 9:  push(T, B); break;
+      case 7: case 8:  push(L, B); break;
+      case 5:  push(L, T); push(R, B); break;
+      case 10: push(T, R); push(L, B); break;
+    }
+  }
+  return segs;
+}
+
+/* stitch segments into polylines so each contour is one continuous stroke */
+function stitch(segs) {
+  const key = p => (Math.round(p[0] * 4) / 4) + ',' + (Math.round(p[1] * 4) / 4);
+  const at = new Map();
+  segs.forEach((s, i) => {
+    for (const p of s) {
+      const k = key(p);
+      if (!at.has(k)) at.set(k, []);
+      at.get(k).push(i);
+    }
+  });
+  const used = new Uint8Array(segs.length);
+  const grow = (chain, fromEnd) => {
+    for (;;) {
+      const tip = chain[fromEnd ? chain.length - 1 : 0];
+      const cand = at.get(key(tip)) || [];
+      let next = -1;
+      for (const i of cand) if (!used[i]) { next = i; break; }
+      if (next < 0) return;
+      used[next] = 1;
+      const [a, b] = segs[next];
+      const other = key(a) === key(tip) ? b : a;
+      fromEnd ? chain.push(other) : chain.unshift(other);
+    }
+  };
+  const out = [];
+  for (let i = 0; i < segs.length; i++) {
+    if (used[i]) continue;
+    used[i] = 1;
+    const chain = [segs[i][0], segs[i][1]];
+    grow(chain, true); grow(chain, false);
+    if (chain.length > 4) out.push(chain);
+  }
+  return out;
+}
+
+/* ---------- the drawn-by-hand wobble, along the line ---------- */
+function shake(pts, seed, amt) {
+  const p1 = seed * 1.7, p2 = seed * 3.13, p3 = seed * 0.61;
+  let L = 0;
+  const out = [];
+  for (let i = 0; i < pts.length; i++) {
+    const [x, y] = pts[i];
+    if (i) L += Math.hypot(x - pts[i - 1][0], y - pts[i - 1][1]);
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    let nx = -(b[1] - a[1]), ny = b[0] - a[0];
+    const n = Math.hypot(nx, ny) || 1; nx /= n; ny /= n;
+    const w = Math.sin(L * 0.021 + p1) * amt
+            + Math.sin(L * 0.052 + p2) * amt * 0.45
+            + Math.sin(L * 0.11 + p3) * amt * 0.22;
+    out.push([x + nx * w, y + ny * w]);
+  }
+  return out;
+}
+const d = pts => pts.map(([x, y], i) => (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1)).join(' ');
+
+/* ---------- canvas ---------- */
+const svg = document.createElementNS(NS, 'svg');
+svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
+svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+svg.innerHTML = `<defs>
+  <filter id="rough" x="-6%" y="-6%" width="112%" height="112%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="2" seed="11" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="rough2" x="-6%" y="-6%" width="112%" height="112%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="5" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs>`;
+const el = (tag, attrs, parent) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+  (parent || svg).appendChild(n);
+  return n;
+};
+const label = (cls, [x, y], txt, anchor, rot, parent) => {
+  const t = el('text', { x, y, class: cls, 'text-anchor': anchor || 'start',
+    transform: rot ? `rotate(${rot} ${x} ${y})` : null }, parent);
+  t.textContent = txt;
+  return t;
+};
+/* place a label along a polyline, turned to follow it */
+function alongLabel(cls, pts, frac, txt, off, parent) {
+  let L = 0; const seg = [];
+  for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]); seg.push(l); L += l; }
+  let want = L * frac, i = 0;
+  while (i < seg.length - 1 && want > seg[i]) { want -= seg[i]; i++; }
+  const t = want / (seg[i] || 1);
+  const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+  let ang = Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
+  if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
+  const nx = -(by - ay), ny = bx - ax, n = Math.hypot(nx, ny) || 1;
+  const o = off == null ? -9 : off;
+  return label(cls, [ax + t * (bx - ax) + nx / n * o, ay + t * (by - ay) + ny / n * o],
+    txt, 'middle', ang.toFixed(1), parent);
+}
+
+/* ---------- contours first, so the town sits on top ---------- */
+const gIso = el('g', { filter: 'url(#rough)' });
+const traced = {};
+let seed = 0; const inked = [];
+for (let k = -10; k <= 4; k++) {
+  const lv = k * 0.5;
+  const half = false;
+  const chains = stitch(isoSegments(lv));
+  traced[lv] = chains;
+  const sea = lv === 0;
+  const index = Math.abs(lv % 2) < 0.01;      // every fourth line reads heavier
+  for (const c of chains) {
+    seed++;
+    const p = el('path', { d: d(shake(c, seed, 2.2)),
+      class: 'iso' + (sea ? ' sea' : index ? ' index' : '') }, gIso);
+    inked.push(p);
+    if (!sea && seed % 5 === 0) el('path', { d: d(shake(c, seed + 60, 2.9)), class: 'iso half' }, gIso);
+  }
+}
+/* the quarter-metre lines, dotted, only over the campus side */
+for (let k = -9; k <= 3; k++) {
+  const lv = k * 0.5 + 0.25;
+  for (const c of stitch(isoSegments(lv))) {
+    seed++;
+    el('path', { d: d(shake(c, seed, 1.8)), class: 'iso half' }, gIso);
+  }
+}
+
+/* ---------- water ---------- */
+const gW = el('g', { filter: 'url(#rough2)', class: 'fadein', style: '--d:.55s' });
+
+// Nieuwe Diep, in the Flevopark, clipping the top of the frame
+const diep = line([
+  [52.3644, 4.9470], [52.3652, 4.9496], [52.3648, 4.9522], [52.3634, 4.9536],
+  [52.3618, 4.9530], [52.3612, 4.9510], [52.3616, 4.9486], [52.3630, 4.9470],
+  [52.3644, 4.9470],
+]);
+el('path', { d: d(diep) + ' Z', class: 'wat' }, gW);
+for (let i = 1; i < 4; i++) {
+  const y = P([52.3642 - i * 0.0008, 0])[1];
+  el('line', { x1: P([0, 4.9486])[0] + i * 4, y1: y, x2: P([0, 4.9518])[0] - i * 5, y2: y, class: 'hatch' }, gW);
+}
+label('water', P([52.3632, 4.9500]), 'Nieuwe Diep', 'middle', null, gW);
+
+// Amsterdam–Rijnkanaal along the east edge
+const kanaal = line([
+  [52.3672, 4.9738], [52.3612, 4.9762], [52.3552, 4.9775], [52.3480, 4.9769], [52.3430, 4.9752],
+]);
+const kanaal2 = line([
+  [52.3676, 4.9772], [52.3616, 4.9796], [52.3556, 4.9809], [52.3484, 4.9803], [52.3434, 4.9786],
+]);
+el('path', { d: d(kanaal) + ' ' + d(kanaal2.slice().reverse()).replace('M', 'L') + ' Z', class: 'wat' }, gW);
+el('path', { d: d(kanaal), class: 'wat line' }, gW);
+alongLabel('water', kanaal, 0.45, 'Amsterdam–Rijnkanaal', -13, gW);
+
+// the ringsloot hugging the dike
+el('path', { d: d(shake(RINGDIJK.map(([x, y]) => [x - 13, y]), 91, 1.6)), class: 'wat line',
+  style: 'stroke:rgba(216,211,201,.24)' }, gW);
+
+/* ---------- railway ---------- */
+const gR = el('g', { filter: 'url(#rough2)', class: 'fadein', style: '--d:.7s' });
+const rail = line([
+  [52.3610, 4.9280], [52.3576, 4.9372], [52.3543, 4.9448], [52.3525, 4.9486],
+  [52.3494, 4.9542], [52.3462, 4.9598], [52.3428, 4.9656], [52.3398, 4.9712],
+]);
+el('path', { d: d(rail), class: 'rail ties' }, gR);
+el('path', { d: d(rail), class: 'rail' }, gR);
+alongLabel('road', rail, 0.66, 'Amsterdam–Zutphen line', 13, gR);
+
+// the station platforms at Kruislaan 261
+const stn = P([52.3525, 4.9486]);
+el('rect', { x: stn[0] - 21, y: stn[1] - 5, width: 42, height: 10, rx: 1.5, class: 'blk',
+  transform: `rotate(28 ${stn[0]} ${stn[1]})` }, gR);
+label('road', [stn[0] - 8, stn[1] + 26], 'Science Park stn.', 'middle', null, gR);
+
+/* ---------- streets ---------- */
+const gS = el('g', { filter: 'url(#rough2)', class: 'fadein', style: '--d:.85s' });
+const STREETS = [
+  ['Science Park', 'st major', 0.80, -12, [
+    [52.3548, 4.9492], [52.3556, 4.9512], [52.3560, 4.9542], [52.3562, 4.9578],
+    [52.3558, 4.9612], [52.3546, 4.9638],
+  ]],
+  ['Kruislaan', 'st', 0.30, -11, [
+    [52.3452, 4.9338], [52.3478, 4.9392], [52.3502, 4.9440], [52.3521, 4.9478],
+    [52.3540, 4.9492], [52.3548, 4.9492],
+  ]],
+  ['Carolina MacGillavrylaan', 'st', 0.48, -10, [
+    [52.3566, 4.9498], [52.3578, 4.9524], [52.3582, 4.9562], [52.3578, 4.9600],
+  ]],
+  ['Ooster Ringdijk', 'st dike', 0.34, -11, [
+    [52.3648, 4.9478], [52.3608, 4.9470], [52.3565, 4.9461], [52.3520, 4.9448],
+    [52.3478, 4.9433], [52.3438, 4.9416],
+  ]],
+  ['Molukkenstraat', 'st', 0.5, -11, [
+    [52.3652, 4.9336], [52.3612, 4.9330], [52.3568, 4.9322], [52.3524, 4.9312],
+  ]],
+  ['Ringweg A10', 'st major', 0.42, -12, [
+    [52.3418, 4.9628], [52.3468, 4.9668], [52.3524, 4.9700], [52.3584, 4.9726],
+    [52.3644, 4.9742],
+  ]],
+  ['Middenweg', 'st minor', 0.5, -10, [
+    [52.3428, 4.9302], [52.3452, 4.9338], [52.3470, 4.9372],
+  ]],
+  [null, 'st minor', 0, 0, [   // the campus loop past 904
+    [52.3560, 4.9542], [52.3552, 4.9548], [52.3549, 4.9570], [52.3556, 4.9582],
+  ]],
+  [null, 'st minor', 0, 0, [
+    [52.3562, 4.9578], [52.3572, 4.9584],
+  ]],
+];
+for (const [name, cls, frac, off, pts] of STREETS) {
+  const l = line(pts);
+  el('path', { d: d(shake(l, ++seed, 1.5)), class: cls }, gS);
+  if (name) alongLabel('road', l, frac, name, off, gS);
+}
+
+/* campus blocks; 904 is the one that matters ------------------------------ */
+const gB = el('g', { filter: 'url(#rough2)', class: 'fadein', style: '--d:1s' });
+const BLOCKS = [
+  ['home', [[52.3565, 4.9528], [52.3566, 4.9560], [52.3556, 4.9561], [52.3555, 4.9529]]],
+  [null, [[52.3552, 4.9498], [52.3553, 4.9515], [52.3545, 4.9516], [52.3544, 4.9499]]],
+  [null, [[52.3565, 4.9498], [52.3566, 4.9516], [52.3559, 4.9517], [52.3558, 4.9499]]],
+  [null, [[52.3567, 4.9570], [52.3568, 4.9594], [52.3561, 4.9595], [52.3560, 4.9571]]],
+  [null, [[52.3553, 4.9588], [52.3554, 4.9606], [52.3546, 4.9607], [52.3545, 4.9589]]],
+  [null, [[52.3576, 4.9536], [52.3577, 4.9556], [52.3571, 4.9557], [52.3570, 4.9537]]],
+  [null, [[52.3540, 4.9520], [52.3541, 4.9534], [52.3534, 4.9535], [52.3533, 4.9521]]],
+];
+for (const [kind, pts] of BLOCKS)
+  el('path', { d: d(shake(line(pts), ++seed, 1.1)) + ' Z', class: 'blk' + (kind ? ' ' + kind : '') }, gB);
+
+// sports fields, south-west
+for (let i = 0; i < 3; i++) {
+  const la = 52.3492 - i * 0.0016;
+  el('path', { d: d(shake(line([[la, 4.9370], [la, 4.9408], [la - 0.0012, 4.9408], [la - 0.0012, 4.9370]]), 300 + i, 1)) + ' Z',
+    class: 'blk', style: 'fill:none;stroke:rgba(226,222,213,.16)' }, gB);
+}
+label('road', P([52.3626, 4.9420]), 'Flevopark', 'start', null, gB);
+label('road', P([52.3556, 4.9386]), 'Watergraafsmeer', 'start', null, gB);
+
+/* ---------- elevation notes, placed on their own contour ---------- */
+function noteOn(lv, target, txt) {
+  const chains = traced[lv]; if (!chains || !chains.length) return;
+  let bp = null, bi = 0, bd = 1e9, bc = null;
+  for (const c of chains) for (let i = 1; i < c.length - 1; i++) {
+    const dd = Math.hypot(c[i][0] - target[0], c[i][1] - target[1]);
+    if (dd < bd) { bd = dd; bp = c[i]; bi = i; bc = c; }
+  }
+  if (!bp || bd > 320) return;
+  const g = el('g', { class: 'fadein', style: '--d:1.2s' });
+  const a = bc[bi - 1], b = bc[bi + 1];
+  let ang = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+  if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
+  const nx = -(b[1] - a[1]), ny = b[0] - a[0], n = Math.hypot(nx, ny) || 1;
+  label('lvl' + (lv === 0 ? ' sea' : ''), [bp[0] + nx / n * -8, bp[1] + ny / n * -8],
+    txt, 'middle', ang.toFixed(1), g);
+}
+noteOn(0,    [400, 250], '0 m NAP — sea level');
+noteOn(-0.5, [640, 180], '−0.5');
+noteOn(-1,   [560, 500], '−1.0');
+noteOn(-2,   [250, 400], '−2.0');
+noteOn(-3,   [185, 440], '−3.0');
+noteOn(-4,   [120, 200], '−4.0');
+
+/* ---------- the marker ---------- */
+const gM = el('g', { class: 'fadein', style: '--d:1.3s' });
+el('circle', { cx: HERE[0], cy: HERE[1], r: 16, class: 'mark' }, gM);
+el('circle', { cx: HERE[0], cy: HERE[1], r: 2.4, class: 'dot' }, gM);
+for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]])
+  el('line', { x1: HERE[0] + dx * 20, y1: HERE[1] + dy * 20,
+               x2: HERE[0] + dx * 28, y2: HERE[1] + dy * 28, class: 'mark' }, gM);
+el('path', { d: `M${HERE[0] + 14} ${HERE[1] + 8} L${HERE[0] + 74} ${HERE[1] + 62}`, class: 'thin' }, gM);
+label('here', [HERE[0] + 80, HERE[1] + 62], 'Science Park 904', 'start', null, gM);
+label('sub', [HERE[0] + 80, HERE[1] + 78], 'Labs D0.134 – D0.137', 'start', null, gM);
+
+/* ---------- north arrow and scale ---------- */
+const gN = el('g', { class: 'fadein', style: '--d:1.45s' });
+el('line', { x1: 62, y1: 152, x2: 62, y2: 98, class: 'thin' }, gN);
+el('path', { d: 'M55 110 L62 94 L69 110', class: 'thin' }, gN);
+label('tick', [62, 170], 'N', 'middle', null, gN);
+
+const SB = 143;                                  // 143 units ≈ 500 m at this scale
+el('line', { x1: 250, y1: 592, x2: 250 + SB, y2: 592, class: 'thin' }, gN);
+[0, SB].forEach(o => el('line', { x1: 250 + o, y1: 586, x2: 250 + o, y2: 598, class: 'thin' }, gN));
+el('line', { x1: 250 + SB / 2, y1: 588, x2: 250 + SB / 2, y2: 596, class: 'thin' }, gN);
+label('tick', [250, 612], '0', 'middle', null, gN);
+label('tick', [250 + SB, 612], '500 m', 'middle', null, gN);
+
+document.getElementById('map').appendChild(svg);
+
+/* ---- the contours ink themselves in, once ---- */
+if (!RM) {
+  inked.forEach((p, i) => {
+    const len = Math.ceil(p.getTotalLength());
+    if (len < 12) return;
+    p.classList.add('draw');
+    p.style.setProperty('--len', len);
+    p.style.setProperty('--d', (0.04 + i * 0.026).toFixed(2) + 's');
+  });
+}
+
+/* ---- logo slots take over as soon as a file exists ---- */
+document.querySelectorAll('.crest').forEach(slot => {
+  const img = new Image();
+  img.alt = slot.textContent.replace(/\s+/g, ' ').trim();
+  img.onload = () => { slot.textContent = ''; slot.classList.add('filled'); slot.appendChild(img); };
+  img.src = slot.dataset.logo;
+});
+</script>
+<script src="deepdive.js" defer></script>
+</body>
+</html>

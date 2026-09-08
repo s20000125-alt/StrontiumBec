@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Team · Strontium quantum gases · University of Amsterdam</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+@font-face{
+  font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;
+  src:url(https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-400-normal.woff2) format('woff2');
+}
+@font-face{
+  font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;
+  src:url(https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-500-normal.woff2) format('woff2');
+}
+:root{
+  --background:#171615;
+  --background-light:#23211f;
+  --foreground:#d8d3c9;
+  --foreground-bright:#eeeae1;
+  --foreground-muted:#8f8a82;
+  --line-secondary:rgba(190,185,176,.28);
+  --ink:var(--foreground);
+  --dim:var(--foreground-muted);
+  --line:var(--line-secondary);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{min-height:100%;
+  background:radial-gradient(120% 95% at 50% 42%, #1d1b19 0%, #171615 58%, #0f0e0d 100%);
+  background-attachment:fixed;color:var(--ink);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:1px solid var(--foreground-bright);outline-offset:4px}
+
+body::before{content:"";position:fixed;inset:-50px;z-index:9;pointer-events:none;opacity:.045;
+  mix-blend-mode:soft-light;animation:grainshift 8s steps(6) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes grainshift{0%{transform:translate(0,0)}20%{transform:translate(-6px,4px)}40%{transform:translate(5px,-5px)}60%{transform:translate(-4px,-3px)}80%{transform:translate(6px,3px)}100%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){body::before{animation:none}}
+
+/* ---------------- chrome ---------------- */
+.home{position:fixed;top:28px;left:32px;z-index:6;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim);line-height:1.6}
+.home b{display:block;font-weight:500;color:var(--foreground-bright);letter-spacing:.05em}
+.home:hover b{color:#fbf8f2}
+
+.count{position:fixed;right:34px;bottom:28px;z-index:6;text-align:right;pointer-events:none;
+  font-variant-numeric:tabular-nums}
+.count div{display:flex;align-items:baseline;justify-content:flex-end;gap:12px}
+.count b{font-weight:500;font-size:17px;letter-spacing:.06em;color:var(--foreground-bright)}
+.count s{text-decoration:none;color:var(--dim);opacity:.55;font-size:12px}
+.count span{font-size:12px;color:var(--dim)}
+.count i{display:block;font-style:normal;margin-top:6px;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);opacity:.75}
+
+/* ---------------- the beam of portraits ---------------- */
+#stream{position:relative;z-index:2}
+.m{position:absolute;top:0;left:0}
+
+.disc{position:relative;display:block;border-radius:50%;
+  background:var(--background-light);
+  transition:transform .55s cubic-bezier(.2,.7,.2,1);
+  transform:scale(.93)}
+.disc::after{content:"";position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(226,222,213,.09);transition:border-color .45s ease}
+.m.on .disc{transform:scale(1.06)}
+.m.on .disc::after{border-color:rgba(226,222,213,.26)}
+
+.ph{position:absolute;inset:0;border-radius:50%;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:grayscale(1) contrast(1.16) brightness(.62);
+  transition:filter .55s ease;
+  -webkit-mask-image:radial-gradient(circle at 50% 44%, #000 52%, rgba(0,0,0,.55) 82%, transparent 100%);
+  mask-image:radial-gradient(circle at 50% 44%, #000 52%, rgba(0,0,0,.55) 82%, transparent 100%)}
+.m.on .ph img{filter:grayscale(1) contrast(1.06) brightness(1)}
+.ph em{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;
+  font-size:clamp(22px,4.4vw,40px);font-weight:400;letter-spacing:.12em;
+  color:rgba(226,222,213,.20);transition:color .5s ease;
+  background:radial-gradient(circle at 50% 40%, rgba(226,222,213,.055), transparent 68%)}
+.m.on .ph em{color:rgba(238,234,225,.5)}
+.ph.has-img em{display:none}
+
+.who{position:absolute;top:0;left:0;transform-origin:0 50%;
+  transition:transform .55s cubic-bezier(.2,.7,.2,1),opacity .45s ease;
+  opacity:.26;transform:scale(.4);white-space:nowrap;pointer-events:none}
+.who.flip{transform-origin:100% 50%;text-align:right}
+.m.on .who{opacity:1;transform:scale(1)}
+.who h2{font-size:clamp(26px,3.5vw,46px);font-weight:400;line-height:1.02;
+  letter-spacing:-.045em;color:var(--foreground-bright)}
+.who p{margin-top:14px;font-size:13px;letter-spacing:.02em;color:var(--foreground);opacity:.55}
+.m.on .who p{opacity:.72}
+/* where someone went next; only worth reading on the live card */
+.who u{display:block;text-decoration:none;margin-top:6px;font-size:12px;color:var(--dim);
+  opacity:0;transition:opacity .4s ease}
+.m.on .who u{opacity:.62}
+
+.lead{position:absolute;height:1px;background:rgba(226,222,213,.4);
+  transform-origin:0 50%;transform:scaleX(0);opacity:0;
+  transition:transform .5s cubic-bezier(.2,.7,.2,1),opacity .4s ease}
+.lead.flip{transform-origin:100% 50%}
+.lead::after{content:"";position:absolute;top:-2px;right:-2px;width:5px;height:5px;
+  border-radius:50%;background:var(--foreground-bright)}
+.lead.flip::after{right:auto;left:-2px}
+.m.on .lead{transform:scaleX(1);opacity:1}
+
+/* ---------------- the one break in the stream ---------------- */
+.split{position:absolute;left:0;width:100%;padding:0 34px;pointer-events:none}
+.split hr{border:0;border-top:1px solid var(--line);opacity:.7}
+.split b{display:block;margin-top:14px;font-size:11px;font-weight:500;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--dim)}
+.split span{display:block;margin-top:7px;font-size:11px;color:var(--dim);opacity:.6}
+
+@media (max-width:720px){
+  .home{top:20px;left:20px}
+  .count{right:20px;bottom:20px}
+  .split{padding:0 20px}
+  .who h2{letter-spacing:-.055em}
+  .who p{margin-top:9px;font-size:11px}
+  .who u{font-size:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .disc,.who,.lead,.ph img,.ph em,.who u{transition:none}
+}
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">
+  Strontium quantum gases<b>Amsterdam</b>
+</a>
+
+<main id="stream" aria-label="Team"></main>
+
+<div class="count" aria-hidden="true">
+  <div><b>01</b><s>·</s><span>21</span></div>
+  <i>In the lab</i>
+</div>
+
+<script>
+/* ============================================================
+   Roster, in two groups that share one visual treatment.
+   Photographs: drop files into  photos/  named after the slug
+   printed in the console (e.g. photos/florian-schreck.jpg).
+   Anything missing falls back to initials.
+   ============================================================ */
+const NOW = [
+  ['Florian Schreck',      'Principal investigator',                  'schreck'],
+  ['Robert Spreeuw',       'Principal investigator',                   'spreeuw'],
+  ['Klaasjan van Druten',  'Principal investigator',                   'druten'],
+  ['Philippe Bouyer',      'Principal investigator',                   'bouyer'],
+  ['Sheng Zhou',           'Research assistant',                       'zhou'],
+  ['Junyu He',             'Postdoc, SrPAL and RbSr',                  'he'],
+  ['Sumit Sarkar',         'Postdoc, Quantum Sensing Testbed',         'sarkar'],
+  ['Ananya Sitaram',       'Postdoc, Quantum Sensing Testbed',         'sitaram'],
+  ['Mehrdad Zarei',        'Postdoc, AQuRA',                           'mzarei'],
+  ['Gentle Dash',          'Postdoc, continuous atom interferometry',  'dash'],
+  ['Ivo Knottnerus',       'PhD, SrMic',                               'knottnerus'],
+  ['Benedikt Heizenreder', 'PhD, iqClock and MoSaiQC',                 'heizenreder'],
+  ['Yu Chih Tseng',        'PhD, SrMic',                               'tseng'],
+  ['Digvijay',             'PhD, MoSaiQC and RbSr',                    'digvijay'],
+  ['András Gácsbaranyi',   'PhD, MoSaiQC',                             'gacsbaranyi'],
+  ['Davide Natale',        'PhD, SrPAL and MAWI',                      'natale'],
+  ['Benoit Brouillet',     'PhD, QuRIOUS',                             'brouillet'],
+  ['Ying Cui',             'PhD, Gen-Q',                               'cui'],
+  ['Haiwei Wang',          'PhD, QuRIOUS',                             'wang'],
+  ['Luuk Michels',         'Master student, quantum sensing',          ''],
+  ['Elisa Wenzel',         'Master student, quantum sensing',          ''],
+];
+
+/* fourth field: where they went next */
+const PAST = [
+  ['Alex Urech',                'Postdoc, SrMic',                  'urech',            'Now at Quantinuum'],
+  ['Mateusz Borkowski',         'Research assistant, theory',       'borkowski',        ''],
+  ['Shayne Bennetts',           'PhD and postdoc, 2014–2024',       'bennetts',         'Now PI at Academia Sinica'],
+  ['Camila Beli Silva',         'PhD, iqClock and MoSaiQC',         'belisilva',        ''],
+  ['Francesca Famà',            'PhD, iqClock',                     'fama',             ''],
+  ['Premjith Thekkeppatt',      'PhD, RbSr',                        'thekkeppat',       'Now at the Niels Bohr Institute'],
+  ['Stefan Alaric Schäffer',    'Postdoc, iqClock',                 'schaffer',         'Now at the Niels Bohr Institute'],
+  ['Rodrigo González Escudero', 'PhD, SrPAL',                       'gonzalezescudero', 'Now postdoc at the VU'],
+  ['Sławomir Bilicki',          'Guest researcher',                 '',                 'Now at Nicolaus Copernicus University'],
+  ['Benjamin Pasquiou',         'Co-PI, SrPAL',                     'pasquiou',         'Now CNRS research engineer, Paris Nord'],
+  ['Jiri Minar',                'Postdoc, theory',                  'minar',            ''],
+  ['Anna Bychek',               'Guest PhD, MoSaiQC',               'bychek',           ''],
+  ['Swadheen Dubey',            'Guest PhD, MoSaiQC',               '',                 ''],
+  ['Sana Boughdachi',           'External PhD, MoSaiQC',            'boughdachi',       ''],
+  ['Vincent Barbé',             'PhD, RbSr, 2015–2020',             'barbe',            'Now at PTB'],
+  ['Mikkel Tang',               'PhD, iqClock',                     'tang',             ''],
+  ['Lukas Reichsöllner',        'Postdoc, RbSr, 2017–2019',         'reichsoellner',    'Now at planqc'],
+  ['Chun-Chia Chen',            'Postdoc, SrPAL',                   'chen',             'Now PI at Academia Sinica'],
+  ['Sergey Pyatchenkov',        'PhD, SrMic, 2015–2019',            '',                 ''],
+  ['Denis Kurlov',              'PhD, theory, 2015–2019',           '',                 'Now at the Russian Quantum Centre'],
+  ['Carla Sanna',               'PhD, SrMic',                       '',                 ''],
+  ['Oleksiy Onishchenko',       'PhD, SrMic, 2014–2018',            '',                 'Now in Mainz'],
+  ['Alessio Ciamei',            'PhD, RbSr, 2014–2018',             '',                 'Now at LENS, Florence'],
+  ['Georgios Siviloglou',       'Postdoc, 2014–2018',               '',                 'Now at the University of Crete'],
+  ['Alex Bayerle',              'PhD',                              '',                 'Now at cosine'],
+  ['Severin Charpignon',        'PhD, RbSr',                        '',                 ''],
+  ['Slava Tzanova',             'PhD, 2012–2013',                   '',                 ''],
+  ['Rudolf Grimm',              'Co-PI, 2008–2013',                 '',                 'Innsbruck'],
+  ['Simon Stellmer',            'PhD, 2008–2013',                   '',                 'Now professor at Uni Bonn'],
+  ['Meng Khoon Tey',            'Postdoc, 2008–2010',               '',                 'Now professor at Tsinghua'],
+  ['Jacek Szczepkowski',        'Visiting scientist, 2011–2012',    '',                 ''],
+  ['Noah Wach',                 'Master student, RbSr',             '',                 ''],
+  ['Scott Wolzak',              'Master student, QDNL clock',       '',                 ''],
+  ['Thies Plassmann',           'Master student, SrMic',            'plassmann',        ''],
+  ['Zeyuan Zhang',              'Master student, iqClock',          'zhang',            ''],
+  ['Noé Grenier',               'Intern, SrPAL',                    '',                 ''],
+  ['Simon Lepleux',             'Intern, RbSr',                     '',                 ''],
+  ['Jens Samland',              'Master student, SrPAL, 2018–2019', '',                 ''],
+  ['Zhoumuyan Geng',            'Master student, 2016–2017',        '',                 'Then PhD at AMOLF'],
+  ['Tim van Leent',             'Master student, 2016–2017',        '',                 ''],
+  ['Namrata Dutta-Mazumdar',    'Master student, 2015–2016',        '',                 ''],
+  ['Wouter Meinster',           'Master student, 2014–2015',        '',                 ''],
+  ['Florian Vogl',              'Master student, 2012–2013',        '',                 ''],
+  ['Mark Parigger',             'Master student, 2011–2012',        '',                 ''],
+  ['Bo Huang',                  'Master student, 2008–2009',        '',                 ''],
+];
+
+const CUT = NOW.length;
+const ALL = [...NOW, ...PAST];
+
+/* ---------- build ---------- */
+const slug = n => n.toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const initials = n => n.split(/\s+/).filter(w => w[0] === w[0].toUpperCase())
+  .map(w => w[0]).slice(0, 2).join('');
+const twoLines = n => { const i = n.lastIndexOf(' '); return i < 0 ? n : n.slice(0, i) + '<br>' + n.slice(i + 1); };
+
+const stream = document.getElementById('stream');
+const cards = ALL.map(([name, role, mail, then]) => {
+  const el = document.createElement('article');
+  el.className = 'm';
+  el.innerHTML = `
+    <a class="disc" ${mail ? `href="mailto:${mail}@strontiumBEC.com"` : 'href="#" aria-disabled="true"'}
+       aria-label="${name}, ${role}">
+      <span class="ph"><em>${initials(name)}</em></span>
+    </a>
+    <i class="lead"></i>
+    <div class="who"><h2>${twoLines(name)}</h2><p>${role}</p>${then ? `<u>${then}</u>` : ''}</div>`;
+  const img = new Image();
+  img.alt = name;
+  img.src = `photos/${slug(name)}.jpg`;
+  img.onload = () => { const ph = el.querySelector('.ph'); ph.classList.add('has-img'); ph.prepend(img); };
+  stream.appendChild(el);
+  return el;
+});
+
+const split = document.createElement('div');
+split.className = 'split';
+split.innerHTML = `<hr><b>Former members</b><span>${PAST.length} people, 2008 onward</span>`;
+stream.appendChild(split);
+
+/* ---------- layout: two lanes, staggered, like atoms in a beam ---------- */
+const countB = document.querySelector('.count b');
+const countN = document.querySelector('.count span');
+const countLabel = document.querySelector('.count i');
+let D = 0, STEP = 0, GAP = 0, narrow = false;
+
+function layout() {
+  const W = innerWidth, H = innerHeight;
+  narrow = W <= 720;
+  D = narrow ? Math.min(W * 0.52, 260) : Math.min(W * 0.245, 300);
+  STEP = D * (narrow ? 0.80 : 0.66);
+  GAP = D * 0.95;                       // breathing room around the divider
+  const lanes = narrow ? [0.30] : [0.205, 0.475];
+  const top0 = H * 0.5 - D / 2;
+  const yOf = i => top0 + i * STEP + (i >= CUT ? GAP : 0);
+
+  cards.forEach((el, i) => {
+    const lx = lanes[i % lanes.length] * W;
+    el.style.transform = `translate3d(${(lx - D / 2).toFixed(1)}px,${yOf(i).toFixed(1)}px,0)`;
+    el.style.width = el.style.height = D + 'px';
+
+    const disc = el.querySelector('.disc');
+    disc.style.width = disc.style.height = D + 'px';
+
+    const gap = narrow ? 20 : 34;
+    const room = W - (lx + D / 2) - gap;
+    const flip = room < (narrow ? 150 : 300);
+    const who = el.querySelector('.who'), lead = el.querySelector('.lead');
+    who.classList.toggle('flip', flip);
+    lead.classList.toggle('flip', flip);
+
+    who.style.top = (D / 2 - 26) + 'px';
+    who.style[flip ? 'right' : 'left'] = (D / 2 + gap + 28) + 'px';
+    who.style[flip ? 'left' : 'right'] = 'auto';
+
+    lead.style.top = (D / 2) + 'px';
+    lead.style.width = '26px';
+    lead.style[flip ? 'right' : 'left'] = (D / 2 + 6) + 'px';
+    lead.style[flip ? 'left' : 'right'] = 'auto';
+  });
+
+  split.style.top = (yOf(CUT - 1) + D + GAP * 0.28) + 'px';
+  stream.style.height = (yOf(cards.length - 1) + D + H * 0.28) + 'px';
+  active = -1; mark();
+}
+
+/* ---------- whichever circle is nearest the eye line is the live one ---------- */
+let active = -1;
+function show(i) {
+  if (i === active) return;
+  if (active >= 0) cards[active].classList.remove('on');
+  active = i;
+  cards[i].classList.add('on');
+  const past = i >= CUT;
+  countB.textContent = String((past ? i - CUT : i) + 1).padStart(2, '0');
+  countN.textContent = past ? PAST.length : NOW.length;
+  countLabel.textContent = past ? 'Former member' : 'In the lab';
+}
+function mark() {
+  const eye = innerHeight * 0.5;
+  let best = 0, bd = Infinity;
+  cards.forEach((el, i) => {
+    const r = el.getBoundingClientRect();
+    const d = Math.abs(r.top + r.height / 2 - eye);
+    if (d < bd) { bd = d; best = i; }
+  });
+  show(best);
+}
+
+let raf = 0;
+addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; mark(); }); }, { passive: true });
+addEventListener('resize', layout);
+layout();
+
+cards.forEach((el, i) => el.addEventListener('pointerenter', () => show(i)));
+
+addEventListener('keydown', e => {
+  const d = e.key === 'ArrowDown' || e.key === 'PageDown' ? 1
+          : e.key === 'ArrowUp' || e.key === 'PageUp' ? -1 : 0;
+  if (!d) return;
+  const n = Math.max(0, Math.min(cards.length - 1, active + d));
+  const r = cards[n].getBoundingClientRect();
+  e.preventDefault();
+  scrollBy({ top: r.top + r.height / 2 - innerHeight * 0.5, behavior: 'smooth' });
+});
+
+console.info('Portrait filenames expected in photos/:\n' + ALL.map(t => slug(t[0]) + '.jpg').join('\n'));
+</script>
+<script src="deepdive.js" defer></script>
+</body>
+</html>

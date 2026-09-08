@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Strontium quantum gases · University of Amsterdam</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+@font-face{
+  font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;
+  src:url(https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-400-normal.woff2) format('woff2');
+}
+@font-face{
+  font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;
+  src:url(https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-500-normal.woff2) format('woff2');
+}
+:root{
+  --background:#171615;
+  --background-light:#23211f;
+  --foreground:#d8d3c9;
+  --foreground-bright:#eeeae1;
+  --foreground-muted:#8f8a82;
+  --line-primary:rgba(226,222,213,.68);
+  --line-secondary:rgba(190,185,176,.28);
+  --connector:rgba(216,211,201,.55);
+  --grain:rgba(235,230,220,.05);
+  --bg:var(--background);
+  --ink:var(--foreground);
+  --dim:var(--foreground-muted);
+  --line:var(--line-secondary);
+  --cyan:var(--foreground-bright);
+  --white:var(--foreground-bright);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;
+  background:
+    radial-gradient(120% 95% at 50% 46%, #1d1b19 0%, #171615 58%, #0f0e0d 100%);
+  background-attachment:fixed;color:var(--ink);font-family:"IBM Plex Mono",ui-monospace,monospace;overflow:hidden}
+a{color:inherit}
+canvas#scene{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:1}
+/* fine monochrome film grain, on top of everything */
+body::before{content:"";position:fixed;inset:-50px;z-index:9;pointer-events:none;opacity:.045;
+  mix-blend-mode:soft-light;animation:grainshift 8s steps(6) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+@keyframes grainshift{0%{transform:translate(0,0)}20%{transform:translate(-6px,4px)}40%{transform:translate(5px,-5px)}60%{transform:translate(-4px,-3px)}80%{transform:translate(6px,3px)}100%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){body::before{animation:none}}
+
+
+/* hero display title: one line, four words, sitting behind the BEC field */
+.title{position:fixed;top:21vh;left:3vw;width:94vw;z-index:0;margin:0;
+  display:grid;grid-template-columns:repeat(4,max-content);justify-content:space-between;align-items:baseline;
+  white-space:nowrap;pointer-events:none;will-change:transform}
+.title span{font-family:"IBM Plex Mono",monospace;font-size:clamp(42px,5.2vw,96px);font-weight:400;
+  line-height:.9;letter-spacing:-.055em;text-transform:uppercase;color:rgba(216,211,201,.62)}
+@media (max-width:1100px){ .title span{letter-spacing:-.07em} }
+@media (max-width:720px){
+  .title{top:17vh;left:2vw;width:96vw}
+  .title span{font-size:clamp(20px,5.6vw,42px);letter-spacing:-.07em}
+}
+.corner{position:fixed;top:28px;right:32px;z-index:3;text-align:right;font-size:11px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);line-height:1.7}
+.corner a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.corner a:hover{color:var(--cyan);border-color:var(--cyan)}
+
+/* peak-anchored menu: text sits beside the top of a thin vertical leader line */
+.callouts{position:fixed;inset:0;z-index:3;pointer-events:none}
+.co{position:absolute;transform:translate(13px,-50%);pointer-events:auto;text-decoration:none;color:var(--ink);white-space:nowrap;line-height:1.35}
+.co.left{transform:translate(calc(-100% - 13px),-50%);text-align:right}
+.co b{display:block;font-weight:500;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--foreground-bright)}
+.co span{display:block;font-weight:400;font-size:10px;line-height:1.3;color:var(--foreground);opacity:.58;margin-top:4px}
+.co:hover b,.co:focus-visible b,.co.hot b{color:#fbf8f2}
+.co:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
+
+footer{position:fixed;left:0;right:0;bottom:0;z-index:3;padding-bottom:20px}
+.footcols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px;padding:0 48px;max-width:1280px}
+.fc{text-decoration:none;line-height:1.5}
+.fc i{display:block;font-style:normal;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.fc b{display:block;font-weight:500;font-size:13px;letter-spacing:.04em;color:var(--foreground-bright);transition:color .2s}
+.fc span{display:block;font-size:11px;line-height:1.4;color:var(--foreground);opacity:.55}
+.fc:hover b,.fc:focus-visible b{color:#fbf8f2;text-decoration:underline;text-underline-offset:4px}
+.fc:focus-visible{outline:1px solid var(--cyan);outline-offset:3px}
+.footline{margin-top:26px;padding:14px 48px 0;border-top:1px solid var(--line-secondary);font-size:11.5px;letter-spacing:.06em;color:var(--dim)}
+
+/* narrow screens: keep the cloud, swap callouts for a plain list */
+.mobile-nav{display:none}
+@media (max-width:720px){
+  .corner{display:none}
+  .callouts{display:none}
+  footer{padding:0 20px 18px}
+  .footcols,.footline{display:none}
+  .mobile-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-top:10px}
+  .mobile-nav a{text-decoration:none;font-size:12px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--foreground-bright);padding:6px 0 6px 12px;border-left:1px solid var(--line-secondary)}
+  .mobile-nav a:hover{border-color:var(--cyan);color:var(--cyan)}
+}
+</style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<h1 class="title">
+  <span>Strontium</span><span>Quantum</span><span>Gases</span><span>Group</span>
+</h1>
+
+<div class="corner">
+  Continuous Bose-Einstein condensation<br>
+  <a href="https://www.nature.com/articles/s41586-022-04731-z">Nature, 2022</a>
+</div>
+
+<nav class="callouts" aria-label="Main">
+  <a class="co" data-i="0" href="https://strontiumbec.com/StrontiumLab/home.html"><b>Research</b><span>Four experiments on ultracold Sr</span></a>
+  <a class="co" data-i="1" href="team.html"><b>Team</b><span>Who we are</span></a>
+  <a class="co" data-i="2" href="#publications"><b>Publications</b><span>Papers and theses</span></a>
+  <a class="co" data-i="3" href="https://strontiumbec.com/StrontiumLab/home.html"><b>News</b><span>Latest: g factor of ⁸⁷Sr, PRL</span></a>
+  <a class="co" data-i="4" href="http://www.strontiumbec.com/Transfer/2025_AMO_positions_Amsterdam.pdf"><b>Open positions</b><span>PhD and postdoc</span></a>
+  <a class="co" data-i="5" href="contact.html"><b>Contact</b><span>Science Park 904, Amsterdam</span></a>
+</nav>
+
+<footer>
+  <div class="footcols">
+    <a class="fc" href="https://strontiumbec.com/StrontiumLab/SrPAL/index.html"><i>Experiment</i><b>SrPAL</b><span>Perpetual atom laser</span></a>
+    <a class="fc" href="https://strontiumbec.com/StrontiumLab/RbSr/index.html"><i>Experiment</i><b>RbSr</b><span>Ground-state molecules</span></a>
+    <a class="fc" href="http://www.iqClock.eu"><i>Experiment</i><b>iqClock</b><span>Integrated quantum clock</span></a>
+    <a class="fc" href="https://strontiumbec.com/StrontiumLab/SrMic/index.html"><i>Experiment</i><b>SrMic</b><span>Single atoms in tweezers</span></a>
+  </div>
+  <div class="footline">© 2026 Strontium quantum gases · University of Amsterdam</div>
+  <nav class="mobile-nav" aria-label="Main (compact)">
+    <a href="https://strontiumbec.com/StrontiumLab/home.html">Research</a>
+    <a href="team.html">Team</a>
+    <a href="#publications">Publications</a>
+    <a href="https://strontiumbec.com/StrontiumLab/home.html">News</a>
+    <a href="http://www.strontiumbec.com/Transfer/2025_AMO_positions_Amsterdam.pdf">Open positions</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</footer>
+
+<script>
+(() => {
+const cv = document.getElementById('scene');
+const ctx = cv.getContext('2d');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOBILE = innerWidth <= 720;
+let W = 0, H = 0, dpr = 1, S = 0, CY = 0;
+
+/* ---------- camera: restored to the pre-enlargement values ---------- */
+const cam = { yaw: -0.14, pitch: 0.175, D: 4.3 };
+const cyaw = Math.cos(cam.yaw), syaw = Math.sin(cam.yaw);
+const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+const smooth = u => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
+const G = (d, w) => Math.exp(-(d * d) / (w * w));
+
+/* ================= peaks: original world positions, widths, amplitudes ================= */
+const PEAKS = [
+  { x0: 0.45, y0: -0.10, hit: 0.55, len: 150,
+    parts: [
+      { A: 0.40, wx: 0.44,  wy: 0.80, dx: 0,      dy: 0     },
+      { A: 0.58, wx: 0.105, wy: 0.52, dx: 0,      dy: 0     },
+      { A: 0.42, wx: 0.085, wy: 0.40, dx: 0.075,  dy: 0.13  },
+      { A: 0.28, wx: 0.090, wy: 0.36, dx: -0.055, dy: -0.17 },
+    ], dr: 0.15, df: 1.6, ph: 0.4 },
+  { x0: -0.80, y0: 0.30, hit: 0.45, len: 108,
+    parts: [
+      { A: 0.26, wx: 0.38,  wy: 0.62, dx: 0,    dy: 0    },
+      { A: 0.30, wx: 0.115, wy: 0.44, dx: 0,    dy: 0    },
+      { A: 0.20, wx: 0.090, wy: 0.34, dx: 0.06, dy: 0.11 },
+    ], dr: 0.12, df: 1.4, ph: 2.1 },
+  { x0: 1.34, y0: 0.24, hit: 0.42, len: 132,
+    parts: [
+      { A: 0.22, wx: 0.34,  wy: 0.55, dx: 0,     dy: 0    },
+      { A: 0.26, wx: 0.125, wy: 0.42, dx: 0,     dy: 0    },
+      { A: 0.16, wx: 0.095, wy: 0.32, dx: -0.06, dy: 0.10 },
+    ], dr: 0.10, df: 1.3, ph: 1.2 },
+  { x0: -0.22, y0: -0.60, hit: 0.45, len: 92,
+    parts: [
+      { A: 0.24, wx: 0.52, wy: 0.48, dx: 0,    dy: 0    },
+      { A: 0.13, wx: 0.16, wy: 0.30, dx: 0.05, dy: 0.05 },
+    ], dr: 0.08, df: 1.5, ph: 4.0 },
+  { x0: -1.58, y0: 0.02, hit: 0.42, len: 116,
+    parts: [
+      { A: 0.20, wx: 0.44, wy: 0.55, dx: 0,     dy: 0    },
+      { A: 0.10, wx: 0.18, wy: 0.34, dx: -0.05, dy: 0.08 },
+    ], dr: 0.06, df: 1.2, ph: 5.1 },
+  { x0: 0.08, y0: 0.72, hit: 0.45, len: 84,
+    parts: [
+      { A: 0.22, wx: 0.50, wy: 0.46, dx: 0,    dy: 0     },
+      { A: 0.11, wx: 0.17, wy: 0.30, dx: 0.06, dy: -0.05 },
+    ], dr: 0.06, df: 1.1, ph: 2.8 },
+];
+const SADDLES = [
+  { x0: -0.20, y0:  0.12, A: 0.17, wx: 0.60, wy: 0.50 },
+  { x0:  0.92, y0:  0.10, A: 0.15, wx: 0.52, wy: 0.46 },
+  { x0:  0.12, y0: -0.36, A: 0.13, wx: 0.58, wy: 0.42 },
+  { x0: -1.22, y0:  0.18, A: 0.11, wx: 0.52, wy: 0.48 },
+  { x0:  0.14, y0:  0.42, A: 0.11, wx: 0.55, wy: 0.42 },
+];
+/* original depth band of the massif; everything nearer than YEDGE is new foreground */
+const YFAR = 1.50, YEDGE = -1.50, YNEAR = -3.90;
+
+function peakHeight(p, x, y) {
+  const cx = p.x0 + p.dr * Math.sin(p.df * (y - p.y0) + p.ph);
+  let z = 0;
+  for (const q of p.parts) z += q.A * G(x - cx - q.dx, q.wx) * G(y - p.y0 - q.dy, q.wy);
+  return z;
+}
+/* the massif, unchanged in x, width and amplitude */
+function massif(x, y) {
+  let z = 0.135 * Math.exp(-Math.pow(x / 1.95, 2) - Math.pow(y / 1.40, 2));
+  for (const p of PEAKS) z += peakHeight(p, x, y);
+  for (const s of SADDLES) z += s.A * G(x - s.x0, s.wx) * G(y - s.y0, s.wy);
+  z += (0.045 * Math.sin(1.05 * x + 0.55 * y + 0.7) * Math.cos(0.72 * y - 0.35 * x + 1.9)
+      + 0.028 * Math.sin(0.55 * x - 0.85 * y + 2.6))
+      * Math.exp(-Math.pow(x / 2.0, 2) - Math.pow(y / 1.6, 2));
+  return z;
+}
+/* Foreground: the same analytic field simply continues toward the camera, so
+   position and slope stay continuous across YEDGE by construction — the gaussian
+   tails fall away on their own. A very low undulation eases in with a smoothstep
+   (zero derivative at the seam) so the apron never reads as a flat plate.
+   No new peaks, no stretching of the summits along depth. */
+function field(x, y) {
+  let z = massif(x, y);
+  if (y < YEDGE) {
+    const s = smooth((YEDGE - y) / 1.10);
+    z = z * Math.exp(-(YEDGE - y) * 0.30)
+      + s * (0.055 + 0.030 * Math.sin(0.52 * x + 0.8)
+                   + 0.022 * Math.sin(0.33 * x - 0.75 * y + 2.1)
+                   + 0.016 * Math.sin(0.85 * y + 0.4 * x));
+  }
+  return Math.max(0, z);
+}
+
+/* ================= sampling: original depth resolution kept, apron added ================= */
+const COLS = MOBILE ? 150 : 240;
+const MINSTEP = MOBILE ? 1.9 : 1.35;                     // minimum on-screen gap between strips
+let ROWS = 0, RMAIN = 0, RFORE = 1, N = 0;
+let BASE, XW, YW, X1, Y1, PW, DISP, VEL, PSX, PSY, ZBUF, ROWY;
+const CAND = PEAKS.map(() => []);
+
+/* screen y of the flat plane at depth y — used to space the strips so that no two
+   ever land less than ~1.4px apart. Uniform depth spacing put the far strips at
+   0.4px, and that beat pattern was the sawtooth. */
+function planeScreenY(y) {
+  const Y1v = y * cyaw;
+  const d = Math.max(0.34, Y1v * cp + cam.D);
+  return CY - (Y1v * sp) / d * S;
+}
+function buildRows() {
+  const ys = [];
+  let y = YNEAR;
+  while (y < YFAR) {
+    ys.push(y);
+    const g = Math.abs(planeScreenY(y) - planeScreenY(y + 0.01)) / 0.01;   // px per world unit
+    let dy = g > 1e-4 ? MINSTEP / g : 0.30;
+    dy = Math.min(0.30, Math.max(0.014, dy));
+    y += dy;
+  }
+  ys.push(YFAR);
+  ys.reverse();                                          // index 0 = farthest
+  ROWS = ys.length;
+  ROWY = new Float32Array(ys);
+  RMAIN = ROWY.findIndex(v => v < YEDGE);                // first apron row
+  if (RMAIN < 0) RMAIN = ROWS;
+  RFORE = Math.max(1, ROWS - RMAIN);
+  N = ROWS * COLS;
+  BASE = new Float32Array(N); XW = new Float32Array(N); YW = new Float32Array(N);
+  X1 = new Float32Array(N); Y1 = new Float32Array(N);
+  PW = PEAKS.map(() => new Float32Array(N));
+  DISP = new Float32Array(N); VEL = new Float32Array(N);
+  PSX = new Float32Array(N); PSY = new Float32Array(N); ZBUF = new Float32Array(N);
+}
+function rebuild() {
+  buildRows();
+  CAND.forEach(a => a.length = 0);
+  for (let r = 0; r < ROWS; r++) {
+    const y = ROWY[r];
+    const d = Math.max(0.34, y * cp + cam.D);
+    /* each strip is sampled wider than the frame at its own depth, so it always
+       enters and leaves off-screen — no visible left or right boundary */
+    const half = Math.max(2.6, d * (W * 0.5 + 140) / S * 1.10);
+    for (let c = 0; c < COLS; c++) {
+      const x = -half + 2 * half * c / (COLS - 1);
+      const i = r * COLS + c;
+      XW[i] = x; YW[i] = y;
+      BASE[i] = field(x, y);
+      X1[i] = x * cyaw - y * syaw;
+      Y1[i] = x * syaw + y * cyaw;
+      for (let k = 0; k < PEAKS.length; k++) {
+        PW[k][i] = Math.min(1, peakHeight(PEAKS[k], x, y) / (BASE[i] + 0.05));
+        if (Math.abs(x - PEAKS[k].x0) < 0.42 && Math.abs(y - PEAKS[k].y0) < 0.42) CAND[k].push(i);
+      }
+    }
+  }
+}
+function resize(){
+  W = innerWidth; H = innerHeight;
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  S = 0.62 * Math.min(W, 1.6 * H);                       // restored scale
+  CY = H * 0.60 + 0.045 * S;                             // restored horizon
+  rebuild();
+}
+addEventListener('resize', resize); resize();
+function screenToWorld(pxx, pyy, zg) {
+  const x1 = (pxx - W / 2) * cam.D / S;
+  const z2 = (CY - pyy) * cam.D / S;
+  const y1 = (z2 - zg * cp) / sp;
+  return { x: x1 * cyaw + y1 * syaw, y: -x1 * syaw + y1 * cyaw };
+}
+
+/* ================= cloth (unchanged behaviour) ================= */
+const cloth = { fx: 0, fy: 9, vx: 0, vy: 0, s: 0, sv: 0, tx: 0, ty: 9, want: 0 };
+let px = -1, py = -1;
+addEventListener('pointermove', e => { px = e.clientX; py = e.clientY; });
+addEventListener('pointerleave', () => { px = -1; py = -1; });
+const K = 42, C = 7.5, PRESS = 0.10, RAD2 = 2 * 0.40 * 0.40;
+function stepCloth(dt) {
+  if (px >= 0) {
+    const w = screenToWorld(px, py, 0.15);
+    const ok = isFinite(w.x) && isFinite(w.y) && w.y > YNEAR - 0.5 && w.y < YFAR + 0.4 && Math.abs(w.x) < 4;
+    if (ok) { cloth.tx = w.x; cloth.ty = w.y; }
+    cloth.want = ok ? 1 : 0;
+  } else cloth.want = 0;
+  cloth.vx += ((cloth.tx - cloth.fx) * 24 - cloth.vx * 9) * dt;
+  cloth.vy += ((cloth.ty - cloth.fy) * 24 - cloth.vy * 9) * dt;
+  cloth.fx += cloth.vx * dt; cloth.fy += cloth.vy * dt;
+  cloth.sv += ((cloth.want - cloth.s) * 26 - cloth.sv * 6.5) * dt;
+  cloth.s += cloth.sv * dt;
+  const active = Math.abs(cloth.s) > 0.01;
+  for (let r = 0; r < ROWS; r++) {
+    const dy = ROWY[r] - cloth.fy;
+    const rowNear = active && Math.abs(dy) < 1.15;
+    const off = r * COLS;
+    for (let c = 0; c < COLS; c++) {
+      const i = off + c;
+      let F = 0;
+      if (rowNear) {
+        const dx = XW[i] - cloth.fx;
+        if (Math.abs(dx) < 1.15) F = -PRESS * cloth.s * Math.exp(-(dx * dx + dy * dy) / RAD2);
+      }
+      VEL[i] += ((F - DISP[i]) * K - VEL[i] * C) * dt;
+      DISP[i] += VEL[i] * dt;
+    }
+  }
+}
+
+/* ================= menu ================= */
+const cos = [...document.querySelectorAll('.co')];
+const HL = new Float32Array(PEAKS.length);
+let hotMenu = -1, hotProx = -1;
+cos.forEach((el, i) => {
+  el.addEventListener('pointerenter', () => hotMenu = i);
+  el.addEventListener('pointerleave', () => hotMenu = -1);
+  el.addEventListener('focus', () => hotMenu = i);
+  el.addEventListener('blur', () => hotMenu = -1);
+});
+
+/* ================= projection + envelopes ================= */
+let NB = 0, TOPY = null;
+function fillAndProject(t) {
+  const breathe = reduced ? 0 : 0.012 * Math.sin(t * 1.5);
+  NB = Math.max(80, Math.ceil(W));                      // 1px buckets: no stair-stepping
+  if (!TOPY || TOPY.length !== NB) TOPY = new Float32Array(NB);
+  TOPY.fill(1e9);
+  for (let r = 0; r < ROWS; r++) {
+    const off = r * COLS;
+    for (let c = 0; c < COLS; c++) {
+      const i = off + c;
+      let z = BASE[i] + DISP[i];
+      for (let k = 0; k < PEAKS.length; k++)
+        if (HL[k] > 0.01) z += HL[k] * PW[k][i] * (0.03 + breathe);
+      if (z < 0) z = 0;
+      ZBUF[i] = z;
+      const y2 = Y1[i] * cp - z * sp;
+      const d = Math.max(0.30, y2 + cam.D);
+      const sx = W / 2 + X1[i] / d * S;
+      const sy = CY - (Y1[i] * sp + z * cp) / d * S;
+      PSX[i] = sx; PSY[i] = sy;
+      const b = sx * NB / W | 0;
+      if (b >= 0 && b < NB) {
+        if (sy < TOPY[b]) TOPY[b] = sy;
+        }
+    }
+  }
+}
+function envPath(arr, downTo) {
+  ctx.beginPath();
+  let started = false;
+  for (let b = 0; b < NB; b++) {
+    if (arr[b] > 1e8) continue;
+    const x = (b + 0.5) * W / NB;
+    started ? ctx.lineTo(x, arr[b]) : ctx.moveTo(x, arr[b]);
+    started = true;
+  }
+  if (!started) return false;
+  ctx.lineTo(W + 20, downTo); ctx.lineTo(-20, downTo);
+  ctx.closePath();
+  return true;
+}
+function smoothEnv(arr) {                                // kill single-bucket spikes
+  const out = new Float32Array(arr.length);
+  for (let b = 0; b < arr.length; b++) {
+    let s = 0, n = 0;
+    for (let k = -2; k <= 2; k++) {
+      const j = b + k;
+      if (j < 0 || j >= arr.length || arr[j] > 1e8) continue;
+      s += arr[j]; n++;
+    }
+    out[b] = n ? s / n : 1e9;
+  }
+  return out;
+}
+function drawMask() {
+  ctx.globalCompositeOperation = 'source-over';
+  /* fully opaque and colour-matched to the CSS background, so the mask edge
+     itself is invisible — only the lines drawn afterwards are seen */
+  const vg = ctx.createRadialGradient(W * 0.5, H * 0.46, 0, W * 0.5, H * 0.46, Math.max(W, H) * 0.72);
+  vg.addColorStop(0, '#1d1b19');
+  vg.addColorStop(0.58, '#171615');
+  vg.addColorStop(1, '#0f0e0d');
+  ctx.fillStyle = vg;
+  if (envPath(smoothEnv(TOPY), H + 40)) ctx.fill();
+}
+
+/* ---------- reflection: only the mid/far summits, never the apron ---------- */
+const RS = 0.55;
+function drawReflection() {
+  /* mirror band under the summits, fading out sideways */
+  const mp = PEAKS[0];
+  const dmid = Math.max(0.4, mp.y0 * cp + cam.D);
+  const bx = W / 2 + (mp.x0 * cyaw - mp.y0 * syaw) / dmid * S;
+  const by = CY - ((mp.x0 * syaw + mp.y0 * cyaw) * sp) / dmid * S;
+
+  /* One vertical gradient does the occlusion instead of a clip path: the old
+     clip chopped strokes at its edge and left a dotted, sawtooth seam between
+     the massif and its reflection. This dissolves downward with no boundary. */
+  ctx.globalCompositeOperation = 'lighter';
+  const fade = ctx.createLinearGradient(0, by, 0, by + H * 0.42);
+  fade.addColorStop(0,    'rgba(226,222,213,0.13)');
+  fade.addColorStop(0.35, 'rgba(226,222,213,0.06)');
+  fade.addColorStop(1,    'rgba(226,222,213,0)');
+  ctx.strokeStyle = fade;
+  ctx.lineWidth = 0.8;
+  for (let r = 2; r < RMAIN; r += 2) {
+    const off = r * COLS;
+    if (YW[off] < -0.7) continue;                        // mid/far summits only
+    let zmax = 0;
+    for (let c = 0; c < COLS; c++) if (ZBUF[off + c] > zmax) zmax = ZBUF[off + c];
+    if (zmax < 0.35) continue;
+    ctx.beginPath();
+    for (let c = 0; c < COLS; c++) {
+      const i = off + c;
+      const zr = -ZBUF[i] * RS;
+      const y2 = Y1[i] * cp - zr * sp;
+      const d = Math.max(0.30, y2 + cam.D);
+      const sx = W / 2 + X1[i] / d * S;
+      const sy = CY - (Y1[i] * sp + zr * cp) / d * S;
+      c ? ctx.lineTo(sx, sy) : ctx.moveTo(sx, sy);
+    }
+    ctx.stroke();
+  }
+  const lg = ctx.createLinearGradient(bx - W * 0.30, 0, bx + W * 0.30, 0);
+  lg.addColorStop(0, 'rgba(216,211,201,0)');
+  lg.addColorStop(0.5, 'rgba(216,211,201,0.20)');
+  lg.addColorStop(1, 'rgba(216,211,201,0)');
+  ctx.strokeStyle = lg; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(bx - W * 0.30, by); ctx.lineTo(bx + W * 0.30, by); ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+/* ---------- strips ---------- */
+const PXS = new Float32Array(COLS), PYS = new Float32Array(COLS), PZS = new Float32Array(COLS);
+function drawSheet() {
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (let r = 0; r < ROWS; r++) {                       // far first, near last
+    const off = r * COLS;
+    const nearF = r / (ROWS - 1);
+    const fore = r >= RMAIN ? (r - RMAIN) / RFORE : 0;
+    const farFade = smooth((YFAR - ROWY[r]) / 0.55);          // farthest strips ease in from nothing
+    const atm = (0.42 + 0.58 * nearF) * (1 - 0.35 * fore) * farFade;
+    for (let c = 0; c < COLS; c++) {
+      const i = off + c;
+      PXS[c] = PSX[i]; PYS[c] = PSY[i]; PZS[c] = ZBUF[i];
+    }
+    let c = 0;
+    while (c < COLS - 1) {
+      const zref = PZS[c];
+      let c1 = c + 1;
+      while (c1 < COLS - 1 && Math.abs(PZS[c1] - zref) < 0.05) c1++;
+      const zm = (zref + PZS[c1]) * 0.5;
+      let boost = 0;
+      for (let k = 0; k < PEAKS.length; k++)
+        if (HL[k] > 0.01) boost = Math.max(boost, HL[k] * PW[k][off + ((c + c1) >> 1)]);
+      const a = Math.min(0.62, (0.070 + 0.34 * Math.pow(Math.min(1.2, zm), 0.95)) * atm * (1 + 0.22 * boost));
+      if (a > 0.005) {
+        ctx.strokeStyle = `rgba(238,234,225,${a})`;
+        ctx.lineWidth = 0.65 + 0.28 * Math.min(1, zm);
+        ctx.beginPath();
+        ctx.moveTo(PXS[c], PYS[c]);
+        for (let cc = c + 1; cc <= c1; cc++) ctx.lineTo(PXS[cc], PYS[cc]);
+        ctx.stroke();
+      }
+      c = c1;
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+/* ---------- leader lines ---------- */
+const anchors = PEAKS.map(p => ({ sx: 0, sy: 0, init: false, len: p.len }));
+function summitIndex(k) {
+  const list = CAND[k];
+  let bi = -1, bz = -1;
+  for (let n = 0; n < list.length; n++) { const i = list[n]; if (ZBUF[i] > bz) { bz = ZBUF[i]; bi = i; } }
+  return bi;
+}
+function drawLeaders() {
+  if (W <= 720) return;
+  anchors.forEach((an, i) => {
+    const bi = summitIndex(i);
+    if (bi < 0) return;
+    const tx = PSX[bi], ty = PSY[bi];
+    if (!an.init) { an.sx = tx; an.sy = ty; an.init = true; }
+    an.sx += (tx - an.sx) * 0.35; an.sy += (ty - an.sy) * 0.35;
+    const on = (hotMenu === i || hotProx === i);
+    const topY = an.sy - an.len * Math.min(1, H / 900);
+    ctx.strokeStyle = on ? 'rgba(238,234,225,0.85)' : 'rgba(216,211,201,0.32)';
+    ctx.lineWidth = on ? 1 : 0.7;
+    ctx.beginPath(); ctx.moveTo(an.sx, an.sy); ctx.lineTo(an.sx, topY); ctx.stroke();
+    ctx.fillStyle = on ? '#eeeae1' : 'rgba(216,211,201,0.75)';
+    ctx.beginPath(); ctx.arc(an.sx, topY, on ? 3 : 2.2, 0, 6.283); ctx.fill();
+    const el = cos[i];
+    el.classList.toggle('left', an.sx > W * 0.78);
+    el.style.left = an.sx + 'px';
+    el.style.top = topY + 'px';
+    an.topY = topY;
+  });
+}
+function leaderProx(mx, my) {
+  for (let i = 0; i < anchors.length; i++) {
+    const an = anchors[i];
+    if (!an.init) continue;
+    if (Math.abs(mx - an.sx) < 7 && my > an.topY - 8 && my < an.sy + 4) return i;
+  }
+  return -1;
+}
+addEventListener('click', e => {
+  if (e.target !== document.body && e.target !== cv) return;
+  const lp = leaderProx(e.clientX, e.clientY);
+  if (lp >= 0) { cos[lp].click(); return; }
+  const w = screenToWorld(e.clientX, e.clientY, 0.30);
+  let best = -1, bd = 1e9;
+  PEAKS.forEach((p, i) => {
+    const d = Math.hypot(w.x - p.x0, w.y - p.y0);
+    if (d < p.hit + 0.15 && d < bd) { bd = d; best = i; }
+  });
+  if (best >= 0) cos[best].click();
+});
+
+const titleEl = document.querySelector('.title');
+let tpx = 0, tpy = 0, last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const t = now / 1000;
+  if (!reduced) stepCloth(dt);
+  hotProx = -1;
+  if (px >= 0) {
+    const lp = leaderProx(px, py);
+    if (lp >= 0) hotProx = lp;
+    else {
+      const w = screenToWorld(px, py, 0.30);
+      let bd = 1e9;
+      PEAKS.forEach((p, i) => {
+        const d = Math.hypot(w.x - p.x0, w.y - p.y0);
+        if (d < p.hit && d < bd) { bd = d; hotProx = i; }
+      });
+    }
+  }
+  PEAKS.forEach((p, i) => {
+    const want = (hotMenu === i || hotProx === i) ? 1 : 0;
+    HL[i] += (want - HL[i]) * 0.10;
+    if (cos[i]) cos[i].classList.toggle('hot', want === 1);
+  });
+  document.body.style.cursor = hotProx >= 0 ? 'pointer' : '';
+  fillAndProject(t);
+  ctx.clearRect(0, 0, W, H);
+  drawMask();
+  drawReflection();
+  drawSheet();
+  drawLeaders();
+  if (!reduced && titleEl && !document.body.classList.contains('dive-busy')) {
+    const gx = px >= 0 ? (px / W - 0.5) : 0, gy = px >= 0 ? (py / H - 0.5) : 0;
+    tpx += ((gx * 7) - tpx) * 0.05; tpy += ((gy * 4) - tpy) * 0.05;
+    titleEl.style.transform = `translate(${tpx.toFixed(2)}px,${tpy.toFixed(2)}px)`;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+<script src="deepdive.js" defer></script>
+</body>
+</html>
