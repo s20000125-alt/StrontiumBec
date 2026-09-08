@@ -23,7 +23,8 @@ const KEY = 'deepdive:arriving';
 
 /* ---------- overlay ---------- */
 const css = `
-#dive{position:fixed;inset:0;z-index:60;pointer-events:none;contain:strict}
+#dive{position:fixed;inset:0;z-index:60;pointer-events:none;contain:strict;opacity:0}
+#dive.on{opacity:1}
 #dive canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #dive .depth{position:absolute;left:32px;bottom:26px;font-family:"IBM Plex Mono",ui-monospace,monospace;
   font-size:11px;letter-spacing:.14em;color:rgba(226,222,213,.62);opacity:0;font-variant-numeric:tabular-nums}
@@ -177,7 +178,8 @@ function applyScene(els, p, dir) {
   const bl = (dir === 'out' ? 5 : 3.4) * p;
   const op = dir === 'out' ? 1 - p * p * 1.05 : 1 - p * 0.9;
   for (const el of els) {
-    el.style.transform = `translate3d(0,${lift.toFixed(2)}vh,0) scale(${sc.toFixed(4)})`;
+    if (!el.hasAttribute('data-dive-fade'))
+      el.style.transform = `translate3d(0,${lift.toFixed(2)}vh,0) scale(${sc.toFixed(4)})`;
     el.style.filter = bl > 0.05 ? `blur(${bl.toFixed(2)}px)` : '';
     el.style.opacity = Math.max(0, op).toFixed(3);
   }
@@ -198,6 +200,7 @@ function run(dir, ms, done) {
   busy = true;
   document.body.classList.add('dive-busy');
   if (!root.isConnected) document.body.appendChild(root);
+  root.classList.add('on');
   size(); seed();
   const els = sceneEls();
   const t0 = performance.now();
@@ -222,6 +225,7 @@ function run(dir, ms, done) {
     else {
       if (dir === 'in') {
         ctx.clearRect(0, 0, W, H);
+        root.classList.remove('on');
         clearScene(els);
         document.body.classList.remove('dive-busy');
         root.remove();
